@@ -14,30 +14,32 @@ const createAttendanceIntoDB = async (payload: TAttendance[]) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+  let newDataFound = false;  // Flag to check if there is any new data
+
   try {
     for (const data of payload) {
       const { user, in_time } = data;
 
+      // Skip if present and absent are both true or both false
+      if (data.present === data.absent) {
+        continue;
+      }
 
       // Define office start times (Assume 24-hour format: HH:mm)
       const officeStartTimes: Record<string, string | undefined> = {
-        student: config.student_class_time, // Example: "08:00"
+        student: config.student_class_time,
         teacher: config.teacher_office_time,
         staff: config.staff_office_time,
         accountant: config.accountant_office_time,
       };
-      
-      // Get office start time based on role
+
       const officeStartTime = officeStartTimes[user.role];
       if (!officeStartTime) {
         throw new Error(`Invalid user role: ${user.role}`);
       }
 
-      // Convert times to comparable Date objects
       const attendanceTime = new Date(`1970-01-01T${in_time}:00`);
       const requiredTime = new Date(`1970-01-01T${officeStartTime}:00`);
-
-      // Determine if late
       const lateStatus = attendanceTime > requiredTime;
 
       // Determine the correct model based on user.role
@@ -53,27 +55,27 @@ const createAttendanceIntoDB = async (payload: TAttendance[]) => {
           existingUser = await Staff.findById(user.id).session(session);
           break;
         case 'accountant':
-          existingUser = await AccountOfficer.findById(user.id).session(
-            session,
-          );
+          existingUser = await AccountOfficer.findById(user.id).session(session);
           break;
         default:
           throw new Error(`Invalid user role: ${user.role}`);
       }
 
       if (!existingUser) {
-        throw new Error(
-          `User with role ${user.role} and ID ${user.id} not found.`,
-        );
+        throw new Error(`User with role ${user.role} and ID ${user.id} not found.`);
       }
 
-      // Check if attendance for the day exists
-      const checkTodaysAttendance = await Attendance.findOne({
+      // Check if attendance for the day already exists in the database
+      const existingAttendance = await Attendance.findOne({
         'user.id': user.id,
+        'user.providedId': user.providedId,
         date: data.date,
       }).session(session);
 
-      if (!checkTodaysAttendance) {
+      if (!existingAttendance) {
+        // At least one new record is found, set the flag to true
+        newDataFound = true;
+
         // Create new attendance entry
         const attendance = new Attendance({
           ...data,
@@ -85,26 +87,30 @@ const createAttendanceIntoDB = async (payload: TAttendance[]) => {
           },
         });
 
-        // Save attendance and update the corresponding user model
+        // Save the new attendance record
         await attendance.save({ session });
 
         // Update the corresponding user model with the new attendance entry
         await existingUser.updateOne(
           { $push: { attendance: attendance._id } },
-          { new: true, runValidators: true, session },
+          { new: true, runValidators: true, session }
         );
       }
     }
 
+    if (!newDataFound) {
+      throw new AppError(StatusCodes.BAD_REQUEST, 'All provided attendance records already exist.');
+    }
+
+    // Commit the transaction
     await session.commitTransaction();
+    return 'Attendance records processed successfully.';
   } catch (error) {
     await session.abortTransaction();
     throw error;
   } finally {
     session.endSession();
   }
-
-  return null;
 };
 
 const getTodayAttendanceFromDB = async (
@@ -387,33 +393,70 @@ const getSingleDateAttendance = async (date: string) => {
   return singleAttendance;
 };
 
-const getSingleAttendance = async (role: string, providedId: string) => {
-  // Step 1: Validate if both 'role' and 'providedId' are provided
+const getSingleAttendance = async (
+  role: string,
+  providedId: string,
+  searchDate?: string
+) => {
+  // Step 1: Validate inputs
   if (!role || !providedId) {
-    throw new Error(
-      'Both role and providedId are required to fetch attendance.',
-    );
+    throw new Error('Both role and providedId are required to fetch attendance.');
   }
 
-  // Step 2: Build the query to match role and providedId
-  const query = {
-    'user.role': role, // Match the role
-    'user.providedId': providedId, // Match the providedId
+  // Step 2: Define query type
+  const query: Record<string, any> = {
+    'user.role': role,
+    'user.providedId': providedId,
   };
 
-  // Step 3: Fetch the attendance data based on the role and providedId
-  const singleAttendance = await Attendance.find(query);
+  // Step 3: If searchDate is provided, format and add it to the query
+  if (searchDate) {
+    const parsedDate = new Date(searchDate.split('-').reverse().join('-'));
+    const day = parsedDate.getDate().toString().padStart(2, '0');
+    const month = (parsedDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = parsedDate.getFullYear();
+    query.date = `${day}-${month}-${year}`;
+  }
 
-  // Step 4: Handle case where no attendance data is found
-  if (!singleAttendance || singleAttendance.length === 0) {
+  // Step 4: Fetch attendance data
+  const singleAttendance  = await Attendance.find(query);
+
+  // Step 5: Handle no data found
+  if (!singleAttendance.length) {
     throw new AppError(
       StatusCodes.NOT_FOUND,
-      'No attendance found for the provided role and providedId.',
+      'No attendance found for the provided role, providedId, and date.',
     );
   }
 
-  return singleAttendance;
+  // Step 6: Calculate attendance statistics
+  const totalEntries = singleAttendance.length;
+  const presentEntries = singleAttendance.filter((entry) => entry.present).length;
+  const absentEntries = singleAttendance.filter((entry) => entry.absent).length;
+  const lateEntries = singleAttendance.filter((entry) => entry.late_status).length;
+
+  const calculatePercentage = (entries: number, total: number): number | string => {
+    if (total === 0) return 0;
+    const percentage = ((entries / total) * 100).toFixed(2);
+    return percentage.endsWith('.00') ? parseInt(percentage) : percentage;
+  };
+
+  // Step 7: Return formatted summary
+  return {
+    role,
+    providedId,
+    searchDate: searchDate || 'All Dates',
+    totalEntries,
+    presentPercentage: calculatePercentage(presentEntries, totalEntries),
+    presentEntries,
+    absentPercentage: calculatePercentage(absentEntries, totalEntries),
+    absentEntries,
+    latePercentage: calculatePercentage(lateEntries, totalEntries),
+    lateEntries,
+    attendanceDetails: singleAttendance,
+  };
 };
+
 
 const updateAttendanceInDB = async (id: string, payload: TAttendance[]) => {
   const session = await mongoose.startSession();
@@ -430,7 +473,7 @@ const updateAttendanceInDB = async (id: string, payload: TAttendance[]) => {
         staff: config.staff_office_time,
         accountant: config.accountant_office_time,
       };
-      
+
       // Get office start time based on role
       const officeStartTime = officeStartTimes[user.role];
       if (!officeStartTime) {

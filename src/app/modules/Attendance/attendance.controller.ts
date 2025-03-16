@@ -73,10 +73,11 @@ const getSingleDateAttendance = catchAsync(async (req, res) => {
 });
 
 const getSingleAttendance = catchAsync(async (req, res) => {
-  const { role } = req.params;
-  const { providedId } = req.params;
+  const { role, providedId } = req.params;
 
-  const result = await AttendanceServices.getSingleAttendance(role, providedId);
+  const { searchDate } = req.query
+
+  const result = await AttendanceServices.getSingleAttendance(role, providedId, searchDate as string);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,

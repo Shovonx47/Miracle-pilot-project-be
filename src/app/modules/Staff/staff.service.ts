@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 import { TStaff } from './staff.interface';
 import { generateStaffId } from './staff.utils';
 import { Staff } from './staff.model';
+import { staffSearchableFields } from './staff.const';
 
 const createStaffIntoDB = async (payload: TStaff) => {
   const session = await mongoose.startSession();
@@ -101,7 +102,11 @@ const createStaffIntoDB = async (payload: TStaff) => {
 };
 
 const getAllStaffFromDB = async (query: Record<string, unknown>) => {
-  const staffQuery = new QueryBuilder(Staff.find(), query).sort().paginate();
+  const staffQuery = new QueryBuilder(Staff.find(), query)
+    .sort()
+    .paginate()
+    .search(staffSearchableFields)
+    .filter();
 
   const meta = await staffQuery.countTotal();
   const data = await staffQuery.modelQuery;

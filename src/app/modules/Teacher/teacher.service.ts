@@ -10,6 +10,7 @@ import { Auth } from '../Auth/auth.model';
 import config from '../../config';
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
+import { teacherSearchableFields } from './teacher.const';
 
 const createTeacherIntoDB = async (payload: TTeacher) => {
   // Start a new session
@@ -105,7 +106,9 @@ const createTeacherIntoDB = async (payload: TTeacher) => {
 const getAllTeacherFromDB = async (query: Record<string, unknown>) => {
   const teacherQuery = new QueryBuilder(Teacher.find(), query)
     .sort()
-    .paginate();
+    .paginate()
+    .search(teacherSearchableFields)
+    .filter();
 
   const meta = await teacherQuery.countTotal();
   const data = await teacherQuery.modelQuery;

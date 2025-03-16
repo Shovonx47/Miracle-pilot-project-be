@@ -10,6 +10,7 @@ import config from '../../config';
 import { TAccountOfficer } from './account_officer.interface';
 import { AccountOfficer } from './account_officer.model';
 import { generateAccountantId } from './account_officer.utils';
+import { accountantSearchableFields } from './account_officer.const';
 
 const createAccountOfficerIntoDB = async (payload: TAccountOfficer) => {
   // Start a new session
@@ -107,7 +108,9 @@ const createAccountOfficerIntoDB = async (payload: TAccountOfficer) => {
 const getAllAccountOfficerFromDB = async (query: Record<string, unknown>) => {
   const accountOfficerQuery = new QueryBuilder(AccountOfficer.find(), query)
     .sort()
-    .paginate();
+    .paginate()
+    .search(accountantSearchableFields)
+    .filter();
 
   const meta = await accountOfficerQuery.countTotal();
   const data = await accountOfficerQuery.modelQuery;

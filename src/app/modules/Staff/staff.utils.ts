@@ -12,7 +12,10 @@ const findLastStaffIdForYear = async (year: string) => {
 };
 
 export const generateStaffId = async (joiningDate: string) => {
-  const year = joiningDate.split('-')[2].slice(-2); // Extract last two digits of the year
+  const year = new Date(joiningDate)
+    .getFullYear()
+    .toString()
+    .slice(-2);  // Extract last two digits of the year
 
   let currentId = await findLastStaffIdForYear(year);
 

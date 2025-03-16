@@ -1,20 +1,23 @@
 import { AccountOfficer } from './account_officer.model';
 
 const findLastAccountantIdForYear = async (year: string) => {
-  const lastStaff = await AccountOfficer.findOne({
-    accountantId: new RegExp(`ST-${year}`), // Match IDs starting with T-YY
+  const lastAccountant = await AccountOfficer.findOne({
+    accountantId: new RegExp(`AO-${year}`), // Match IDs starting with T-YY
   })
     .sort({ createdAt: -1 }) // Get the most recent Staff for the year
     .select('accountantId')
     .lean();
 
-  return lastStaff?.accountantId
-    ? lastStaff.accountantId.substring(5)
+  return lastAccountant?.accountantId
+    ? lastAccountant.accountantId.substring(5)
     : undefined;
 };
 
 export const generateAccountantId = async (joiningDate: string) => {
-  const year = joiningDate.split('-')[2].slice(-2); // Extract last two digits of the year
+  const year = new Date(joiningDate)
+  .getFullYear()
+  .toString()
+  .slice(-2); // Extract last two digits of the year
 
   let currentId = await findLastAccountantIdForYear(year);
 
