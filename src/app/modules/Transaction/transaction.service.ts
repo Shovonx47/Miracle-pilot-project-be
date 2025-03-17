@@ -1,3 +1,5 @@
+import QueryBuilder from '../../builder/QueryBuilder';
+import { transactionSearchableFields } from './transaction.constant';
 import { ITransaction } from './transaction.interface';
 import { Transaction } from './transaction.model';
 
@@ -9,8 +11,15 @@ const createTransactionIntoDB = async (payload: ITransaction) => {
 
 // Get All Transaction From DB
 const getAllTransactionFromDB = async (query: Record<string, unknown>) => {
-  const transaction = await Transaction.find(query);
-  return transaction;
+  const transactionQuery = new QueryBuilder(Transaction.find(), query)
+    .sort()
+    .paginate()
+    .search(transactionSearchableFields)
+    .filter();
+
+  const meta = await transactionQuery.countTotal();
+  const data = await transactionQuery.modelQuery;
+  return { meta, data };
 };
 
 // Get Single Transaction From DB

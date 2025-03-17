@@ -1,4 +1,8 @@
-export enum TransactionType {
-  DEPOSIT = 'Deposit',
-  WITHDRAWAL = 'Withdrawal',
-}
+export const transactionSearchableFields = [
+  'userId',
+  'studentId',
+  'transactionCategory',
+  'transactionSubCategory',
+  'transactionSource',
+  'transactionDate',
+];
