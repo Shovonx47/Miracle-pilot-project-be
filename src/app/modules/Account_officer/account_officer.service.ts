@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
@@ -121,8 +121,14 @@ const getAllAccountOfficerFromDB = async (query: Record<string, unknown>) => {
   };
 };
 
-const getSingleAccountOfficerDetails = async (id: string) => {
-  const singleAccountOfficer = await AccountOfficer.findById(id);
+const getSingleAccountOfficerDetails = async (identifier: string) => {
+  let query = {};
+  if (Types.ObjectId.isValid(identifier)) {
+    query = { _id: identifier };
+  } else {
+    query = { email: identifier }; // If it's not a valid ObjectId, search by email
+  }
+  const singleAccountOfficer = await AccountOfficer.findOne(query).populate('attendance');
 
   if (!singleAccountOfficer) {
     throw new AppError(StatusCodes.NOT_FOUND, 'No accountant found');

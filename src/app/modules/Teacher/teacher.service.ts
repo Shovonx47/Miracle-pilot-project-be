@@ -9,7 +9,7 @@ import { generateTeacherId } from './teacher.utils';
 import { Auth } from '../Auth/auth.model';
 import config from '../../config';
 import bcrypt from 'bcrypt';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { teacherSearchableFields } from './teacher.const';
 
 const createTeacherIntoDB = async (payload: TTeacher) => {
@@ -119,8 +119,14 @@ const getAllTeacherFromDB = async (query: Record<string, unknown>) => {
   };
 };
 
-const getSingleTeacherDetails = async (id: string) => {
-  const singleTeacher = await Teacher.findById(id);
+const getSingleTeacherDetails = async (identifier: string) => {
+  let query = {};
+  if (Types.ObjectId.isValid(identifier)) {
+    query = { _id: identifier };
+  } else {
+    query = { email: identifier }; // If it's not a valid ObjectId, search by email
+  }
+  const singleTeacher = await Teacher.findOne(query).populate('attendance');
 
   if (!singleTeacher) {
     throw new AppError(StatusCodes.NOT_FOUND, 'No teacher found');

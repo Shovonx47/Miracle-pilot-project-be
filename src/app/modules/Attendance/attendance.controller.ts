@@ -9,7 +9,7 @@ const createAttendance = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: 'Attendance created successful!',
+    message: 'Attendance recorded successfully.',
     data: result,
   });
 });

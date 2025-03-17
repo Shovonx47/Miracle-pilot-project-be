@@ -125,7 +125,7 @@ const getSingleStudentDetails = async (identifier: string) => {
   }
 
   // Find student by either _id or email
-  const singleStudent = await Student.findOne(query);
+  const singleStudent = await Student.findOne(query).populate('attendance');
 
   if (!singleStudent) {
     throw new AppError(StatusCodes.NOT_FOUND, 'No student found');
