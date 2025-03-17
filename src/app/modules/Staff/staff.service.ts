@@ -6,10 +6,11 @@ import sanitizePayload from '../../middlewares/updateDataValidation';
 import { Auth } from '../Auth/auth.model';
 import config from '../../config';
 import bcrypt from 'bcrypt';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { TStaff } from './staff.interface';
 import { generateStaffId } from './staff.utils';
 import { Staff } from './staff.model';
+import { staffSearchableFields } from './staff.const';
 
 const createStaffIntoDB = async (payload: TStaff) => {
   const session = await mongoose.startSession();
@@ -101,7 +102,11 @@ const createStaffIntoDB = async (payload: TStaff) => {
 };
 
 const getAllStaffFromDB = async (query: Record<string, unknown>) => {
-  const staffQuery = new QueryBuilder(Staff.find(), query).sort().paginate();
+  const staffQuery = new QueryBuilder(Staff.find(), query)
+    .sort()
+    .paginate()
+    .search(staffSearchableFields)
+    .filter();
 
   const meta = await staffQuery.countTotal();
   const data = await staffQuery.modelQuery;
@@ -112,8 +117,14 @@ const getAllStaffFromDB = async (query: Record<string, unknown>) => {
   };
 };
 
-const getSingleStaffDetails = async (id: string) => {
-  const singleStaff = await Staff.findById(id);
+const getSingleStaffDetails = async (identifier: string) => {
+  let query = {};
+  if (Types.ObjectId.isValid(identifier)) {
+    query = { _id: identifier };
+  } else {
+    query = { email: identifier }; // If it's not a valid ObjectId, search by email
+  }
+  const singleStaff = await Staff.findOne(query).populate('attendance');
 
   if (!singleStaff) {
     throw new AppError(StatusCodes.NOT_FOUND, 'No staff found');

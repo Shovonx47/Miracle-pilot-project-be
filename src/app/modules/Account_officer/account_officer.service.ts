@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
@@ -10,6 +10,7 @@ import config from '../../config';
 import { TAccountOfficer } from './account_officer.interface';
 import { AccountOfficer } from './account_officer.model';
 import { generateAccountantId } from './account_officer.utils';
+import { accountantSearchableFields } from './account_officer.const';
 
 const createAccountOfficerIntoDB = async (payload: TAccountOfficer) => {
   // Start a new session
@@ -107,7 +108,9 @@ const createAccountOfficerIntoDB = async (payload: TAccountOfficer) => {
 const getAllAccountOfficerFromDB = async (query: Record<string, unknown>) => {
   const accountOfficerQuery = new QueryBuilder(AccountOfficer.find(), query)
     .sort()
-    .paginate();
+    .paginate()
+    .search(accountantSearchableFields)
+    .filter();
 
   const meta = await accountOfficerQuery.countTotal();
   const data = await accountOfficerQuery.modelQuery;
@@ -118,8 +121,14 @@ const getAllAccountOfficerFromDB = async (query: Record<string, unknown>) => {
   };
 };
 
-const getSingleAccountOfficerDetails = async (id: string) => {
-  const singleAccountOfficer = await AccountOfficer.findById(id);
+const getSingleAccountOfficerDetails = async (identifier: string) => {
+  let query = {};
+  if (Types.ObjectId.isValid(identifier)) {
+    query = { _id: identifier };
+  } else {
+    query = { email: identifier }; // If it's not a valid ObjectId, search by email
+  }
+  const singleAccountOfficer = await AccountOfficer.findOne(query).populate('attendance');
 
   if (!singleAccountOfficer) {
     throw new AppError(StatusCodes.NOT_FOUND, 'No accountant found');
