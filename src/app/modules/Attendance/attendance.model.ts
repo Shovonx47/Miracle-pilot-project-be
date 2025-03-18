@@ -33,6 +33,10 @@ const attendanceSchema: Schema<TAttendance> = new Schema<TAttendance>(
       type: String,
       required: [true, 'Date is required.'],
     },
+    day: {
+      type: String,
+      required: [true, 'Day is required.'],
+    },
     present: {
       type: Boolean,
       default: false,

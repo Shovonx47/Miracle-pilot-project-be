@@ -4,5 +4,6 @@ export const teacherSearchableFields = [
     'firstName',
     'lastName',
     'teacherId',
+    'joiningDate',
   ];
   
