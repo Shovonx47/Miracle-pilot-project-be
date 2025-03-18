@@ -323,15 +323,29 @@ const updateForgotPasswordFromProfile = async (payload: {
 };
 
 
-const getSingleAuthDetails = async (id: string) => {
-  const singleUser = await Auth.findOne({ userId: id });
+const getSingleAuthDetails = async (identifier: string) => {
+
+  let query = {};
+
+  // Check if the identifier looks like an email (contains '@')
+  if (identifier.includes("@")) {
+    query = { email: identifier }; 
+  } else if (identifier.trim() !== "") {
+    query = { userId: identifier };
+  } else {
+    throw new AppError(StatusCodes.BAD_REQUEST, "Invalid identifier provided");
+  }
+
+  const singleUser = await Auth.findOne(query);
 
   if (!singleUser) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'No user found');
+    throw new AppError(StatusCodes.NOT_FOUND, "No user found");
   }
 
   return singleUser;
 };
+
+
 
 
 

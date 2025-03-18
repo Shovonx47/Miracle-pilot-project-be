@@ -9,6 +9,7 @@ export interface TAttendance {
   designation?: string;
   full_name: string;
   date: string;
+  day: string;
 
   present: boolean;
   absent: boolean;

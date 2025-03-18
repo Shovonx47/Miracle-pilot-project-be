@@ -106,7 +106,7 @@ const getSingleUser = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: 'Teacher retrieved successful!',
+    message: 'User retrieved successful!',
     data: result,
   });
 });

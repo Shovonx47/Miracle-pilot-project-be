@@ -9,6 +9,7 @@ import { AccountOfficer } from '../Account_officer/account_officer.model';
 import { Attendance } from './attendance.model';
 import { getCreatedIdForUser } from './attendance.utils';
 import config from '../../config';
+import moment from 'moment';
 
 const createAttendanceIntoDB = async (payload: TAttendance[]) => {
   const session = await mongoose.startSession();
@@ -18,12 +19,15 @@ const createAttendanceIntoDB = async (payload: TAttendance[]) => {
 
   try {
     for (const data of payload) {
-      const { user, in_time } = data;
+      const { user, in_time, date } = data;
 
       // Skip if present and absent are both true or both false
       if (data.present === data.absent) {
         continue;
       }
+     // Convert "18-03-2025" to a valid date format and extract day name
+     const parsedDate = moment(date, "DD-MM-YYYY").toDate();
+     const dayName = moment(parsedDate).format("dddd"); // Get full day name
 
       // Define office start times (Assume 24-hour format: HH:mm)
       const officeStartTimes: Record<string, string | undefined> = {
@@ -79,6 +83,7 @@ const createAttendanceIntoDB = async (payload: TAttendance[]) => {
         // Create new attendance entry
         const attendance = new Attendance({
           ...data,
+          day: dayName, // Assign the dynamically extracted day name
           late_status: lateStatus,
           user: {
             id: existingUser._id,
@@ -419,7 +424,7 @@ const getSingleAttendance = async (
   }
 
   // Step 4: Fetch attendance data
-  const singleAttendance  = await Attendance.find(query);
+  const singleAttendance = await Attendance.find(query);
 
   // Step 5: Handle no data found
   if (!singleAttendance.length) {
