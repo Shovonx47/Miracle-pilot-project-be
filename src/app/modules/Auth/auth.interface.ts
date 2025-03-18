@@ -10,13 +10,13 @@ export type TUser = {
   password: string;
   passwordChangedAt?: Date;
   role:
-    | 'user'
-    | 'teacher'
-    | 'student'
-    | 'staff'
-    | 'accountant'
-    | 'admin'
-    | 'super_admin';
+  | 'user'
+  | 'teacher'
+  | 'student'
+  | 'staff'
+  | 'accountant'
+  | 'admin'
+  | 'super_admin';
   status: 'active' | 'block';
   isDeleted: boolean;
   isCompleted: boolean;
@@ -35,7 +35,7 @@ export type TUserExtends = Document &
   };
 
 export interface UserModel extends Model<TUserExtends> {
-  isUserExistsByCustomId(email: string): Promise<TUser | null>;
+  isUserExistsByEmail(email: string): Promise<TUser | null>;
   isJWTIssuedBeforePasswordChanged(
     passwordChangedTimestamp: Date,
     jwtIssuedTimestamp: number,

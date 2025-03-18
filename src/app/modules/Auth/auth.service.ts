@@ -149,7 +149,7 @@ const refreshToken = async (token: string) => {
   const { email, iat } = decoded;
 
   // checking if the user is exist
-  const existingUser = await Auth.isUserExistsByCustomId(email);
+  const existingUser = await Auth.isUserExistsByEmail(email);
 
   if (!existingUser) {
     throw new AppError(StatusCodes.NOT_FOUND, 'This user is not found.');

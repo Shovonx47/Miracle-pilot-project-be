@@ -23,6 +23,11 @@ const createAccountOfficerIntoDB = async (payload: TAccountOfficer) => {
       throw new AppError(StatusCodes.BAD_REQUEST, 'Please provide your ID.');
     }
 
+     const existingAuth = await Auth.findOne({ email: payload.email }).session(session);
+    
+        if (!existingAuth) {
+          throw new AppError(StatusCodes.BAD_REQUEST, "Please enter registered email.")
+        }
     // Check if staff already exists
     const existingStaff = await AccountOfficer.findOne({
       userId: payload.userId,
