@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { TransactionType } from './transaction.constant';
+import { Type_of_Transaction } from '../TransactionType/transactionType.constant';
 
 const createTransactionValidationSchema = z.object({
   userId: z.string({ required_error: 'User ID is required.' }),
   amount: z.number({ required_error: 'Amount is required.' }),
-  transactionType: z.nativeEnum(TransactionType, {
+  transactionType: z.nativeEnum(Type_of_Transaction, {
     required_error: 'Transaction type is required.',
   }),
   transactionSource: z.string({
