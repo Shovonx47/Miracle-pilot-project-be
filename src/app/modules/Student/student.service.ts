@@ -16,6 +16,16 @@ const createStudentIntoDB = async (payload: TStudent) => {
   session.startTransaction();
 
   try {
+    // Validate `userId`
+    if (!payload.userId) {
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Please provide your ID.');
+    }
+    const existingAuth = await Auth.findOne({ email: payload.email }).session(session);
+
+    if (!existingAuth) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "Please enter registered email.")
+    }
+
     // Check for existing student with the same roll, class, and section
     const existingStudent = await Student.findOne(
       {
@@ -107,7 +117,7 @@ const getAllStudentFromDB = async (query: Record<string, unknown>) => {
 
   const meta = await studentQuery.countTotal();
   const data = await studentQuery.modelQuery;
-  
+
 
   return {
     meta,

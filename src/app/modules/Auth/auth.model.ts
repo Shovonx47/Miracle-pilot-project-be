@@ -122,7 +122,7 @@ authSchema.set('toJSON', {
   },
 });
 
-authSchema.statics.isUserExistsByCustomId = async function (email: string) {
+authSchema.statics.isUserExistsByEmail = async function (email: string) {
   return await Auth.findOne({ email }).select('+password');
 };
 

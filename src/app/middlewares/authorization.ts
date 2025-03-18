@@ -32,7 +32,7 @@ const authorization = (...requiredRoles: TUserRole[]) => {
 
     // checking if the user is exist
     // const user = await Auth.findOne({ email });
-    const user = await Auth.isUserExistsByCustomId(email);
+    const user = await Auth.isUserExistsByEmail(email);
 
     if (!user) {
       throw new AppError(StatusCodes.NOT_FOUND, 'This user is not found !');

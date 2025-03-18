@@ -55,7 +55,7 @@ const AccountOfficerSchema = new Schema<TAccountOfficer>(
       required: [true, 'Contact number is required.'],
     },
     alternativeContactNumber: { type: String },
-    email: { type: String, required: [true, 'Email is required.'] },
+    email: { type: String, required: [true, 'Email is required.'], unique: true },
     nidNumber: { type: String, required: [true, 'NID number is required.'] },
     educationalQualification: {
       type: String,
