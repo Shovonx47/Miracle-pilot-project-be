@@ -1,17 +1,17 @@
 import { Router } from 'express';
-import { TransactionController } from '../Transaction/transaction.controller';
+import { TransactionTypeController } from './transactionType.controller';
 
 const router = Router();
 
 router
   .route('/')
-  .post(TransactionController.createTransaction)
-  .get(TransactionController.getAllTransaction);
+  .post(TransactionTypeController.createTransactionType)
+  .get(TransactionTypeController.getAllTransactionTypes);
 
 router
   .route('/:id')
-  .get(TransactionController.getSingleTransaction)
-  .put(TransactionController.updateTransaction)
-  .delete(TransactionController.deleteTransaction);
+  .get(TransactionTypeController.getSingleTransactionType)
+  .put(TransactionTypeController.updateTransactionType)
+  .delete(TransactionTypeController.deleteTransactionType);
 
 export const TransactionTypeRoutes = router;
