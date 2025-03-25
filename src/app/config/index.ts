@@ -17,12 +17,16 @@ export default {
   SMTPPORT: process.env.SMTPPORT,
   SMTPUSER: process.env.SMTPUSER,
   SMTPPASS: process.env.SMTPPASS,
-  SUPPORTEMAIl: process.env.SUPPORTEMAIl,
+  SUPPORTEMAIL: process.env.SUPPORTEMAIL,
 
 
   student_class_time: process.env.STUDENT_CLASS_TIME,
   teacher_office_time: process.env.TEACHER_OFFICE_TIME,
   staff_office_time: process.env.STAFF_OFFICE_TIME,
   accountant_office_time: process.env.ACCOUNTANT_OFFICE_TIME,
+
+  super_admin_password: process.env.SUPER_ADMIN_PASSWORD,
+  super_admin_email: process.env.SUPER_ADMIN_EMAIL,
+  super_admin_userId: process.env.SUPER_ADMIN_USERID
 
 };
