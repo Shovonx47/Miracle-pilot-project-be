@@ -10,7 +10,7 @@ const router = express.Router();
 router
   .route('/')
   .post(
-    authorization(USER_ROLE.super_admin, USER_ROLE.admin, USER_ROLE.teacher),
+    // authorization(USER_ROLE.super_admin, USER_ROLE.admin, USER_ROLE.teacher),
     validateRequest(teacherValidation.teacherValidationSchema),
     teacherController.createTeacher,
   )

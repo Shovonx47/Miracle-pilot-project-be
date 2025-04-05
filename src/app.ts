@@ -15,6 +15,8 @@ app.use(
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    exposedHeaders: ['Authorization'],
+    maxAge: 86400, // 24 hours in seconds
   }),
 );
 app.use('/api/v1', router);

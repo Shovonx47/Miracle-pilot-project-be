@@ -35,12 +35,25 @@ const registerUserIntoDB = async (payload: TUser) => {
       throw new AppError(StatusCodes.NOT_FOUND, 'Email already exists.');
     }
 
+    // Set initial status based on role
+    const initialStatus = {
+      approvalStatus: payload.role === 'super_admin' ? 'approved' : 'pending',
+      status: 'active'
+    };
+
+    console.log('Registering user with status:', {
+      email: payload.email,
+      role: payload.role,
+      initialStatus
+    });
+
     // Create a new user
     const newUser = await Auth.create(
       [
         {
           ...payload,
           userId: await generateUserId(),
+          ...initialStatus
         },
       ],
       { session },
@@ -100,10 +113,31 @@ const loginUserWithDB = async (payload: TUser) => {
   if (!existingUser) {
     throw new AppError(StatusCodes.NOT_FOUND, 'Account not found.');
   }
+
+  console.log('Login attempt:', {
+    email: existingUser.email,
+    role: existingUser.role,
+    approvalStatus: existingUser.approvalStatus,
+    status: existingUser.status
+  });
+
   const isDeleted = existingUser?.isDeleted;
 
   if (isDeleted) {
     throw new AppError(StatusCodes.FORBIDDEN, 'This account is deleted!');
+  }
+
+  // Check if user is approved
+  if (existingUser.role !== 'super_admin') {
+    if (existingUser.approvalStatus === 'pending') {
+      throw new AppError(StatusCodes.FORBIDDEN, 'Your account is pending approval from super admin.');
+    }
+    if (existingUser.approvalStatus === 'rejected') {
+      throw new AppError(StatusCodes.FORBIDDEN, 'Your account has been rejected by super admin.');
+    }
+    if (existingUser.approvalStatus !== 'approved') {
+      throw new AppError(StatusCodes.FORBIDDEN, 'Your account is not approved.');
+    }
   }
 
   const isPasswordValid = await existingUser.comparePassword(
@@ -322,9 +356,7 @@ const updateForgotPasswordFromProfile = async (payload: {
   return result;
 };
 
-
 const getSingleAuthDetails = async (identifier: string) => {
-
   let query = {};
 
   // Check if the identifier looks like an email (contains '@')
@@ -345,9 +377,97 @@ const getSingleAuthDetails = async (identifier: string) => {
   return singleUser;
 };
 
+const getPendingUsersFromDB = async () => {
+  const pendingUsers = await Auth.find({ approvalStatus: 'pending' });
+  return pendingUsers;
+};
 
+const approveUserInDB = async (userId: string) => {
+  const user = await Auth.findOne({ userId });
+  
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
 
+  if (user.approvalStatus === 'approved') {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'User is already approved');
+  }
 
+  console.log('Current user status:', {
+    userId: user.userId,
+    email: user.email,
+    currentStatus: user.approvalStatus
+  });
+
+  // Update user status to approved
+  const result = await Auth.findOneAndUpdate(
+    { userId },
+    { 
+      $set: { 
+        approvalStatus: 'approved',
+        status: 'active'
+      } 
+    },
+    { new: true }
+  );
+
+  if (!result) {
+    throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to approve user');
+  }
+
+  console.log('Updated user status:', {
+    userId: result.userId,
+    email: result.email,
+    newStatus: result.approvalStatus
+  });
+
+  return result;
+};
+
+const rejectUserInDB = async (userId: string) => {
+  const user = await Auth.findOne({ userId });
+  
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  if (user.approvalStatus === 'rejected') {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'User is already rejected');
+  }
+
+  const result = await Auth.findOneAndUpdate(
+    { userId },
+    { $set: { approvalStatus: 'rejected' } },
+    { new: true }
+  );
+
+  return result;
+};
+
+const updateUserApprovalStatus = async (userId: string, status: 'approved' | 'rejected') => {
+  const user = await Auth.findOne({ userId });
+  
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  const result = await Auth.findOneAndUpdate(
+    { userId },
+    { 
+      $set: { 
+        approvalStatus: status,
+        status: status === 'approved' ? 'active' : user.status
+      } 
+    },
+    { new: true }
+  );
+
+  if (!result) {
+    throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to update user status');
+  }
+
+  return result;
+};
 
 export const UserAuthServices = {
   registerUserIntoDB,
@@ -357,5 +477,9 @@ export const UserAuthServices = {
   sendForgotPasswordCode,
   verifyForgotUserAuth,
   updateForgotPasswordFromProfile,
-  getSingleAuthDetails
+  getSingleAuthDetails,
+  getPendingUsersFromDB,
+  approveUserInDB,
+  rejectUserInDB,
+  updateUserApprovalStatus
 };

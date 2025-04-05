@@ -18,6 +18,7 @@ export type TUser = {
   | 'admin'
   | 'super_admin';
   status: 'active' | 'block';
+  approvalStatus: 'pending' | 'approved' | 'rejected';
   isDeleted: boolean;
   isCompleted: boolean;
 

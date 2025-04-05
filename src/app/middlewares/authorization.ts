@@ -10,12 +10,24 @@ import { Auth } from '../modules/Auth/auth.model';
 
 const authorization = (...requiredRoles: TUserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization;
+    const authHeader = req.headers.authorization;
+
+    // If no roles are required and token is missing, we can proceed
+    if (requiredRoles.length === 0 && !authHeader) {
+      next();
+      return;
+    }
 
     // checking if the token is missing
-    if (!token) {
+    if (!authHeader) {
       throw new AppError(StatusCodes.UNAUTHORIZED, 'You are not authorized!');
     }
+    
+    // Extract token from Bearer format if present
+    const token = authHeader.startsWith('Bearer ') 
+      ? authHeader.split(' ')[1] 
+      : authHeader;
+      
     // checking if the given token is valid
     let decoded;
 

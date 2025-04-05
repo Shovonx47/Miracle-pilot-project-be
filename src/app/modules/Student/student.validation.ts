@@ -12,7 +12,7 @@ const siblingSchema = z.object({
 const studentValidationSchema = z.object({
   body: z.object({
     userId: z.string({ required_error: 'User ID is required' }),
-    profileImage: z.string({ required_error: 'Profile image is required' }),
+    profileImage: z.union([z.string(), z.null()]).optional(),
     academicYear: z.string({ required_error: 'Academic year is required' }),
     admissionDate: z.string({ required_error: 'Admission date is required' }),
     status: z.enum(['Active', 'Inactive'], {
@@ -88,10 +88,8 @@ const studentValidationSchema = z.object({
     hostelName: z.string().optional(),
     roomNumber: z.string().optional(),
 
-    transferCertificate: z.string().optional(),
-    birthCertificate: z.string({
-      required_error: 'Birth certificate is required',
-    }),
+    transferCertificate: z.union([z.string(), z.null()]).optional(),
+    birthCertificate: z.union([z.string(), z.null()]).optional(),
   }),
 });
 

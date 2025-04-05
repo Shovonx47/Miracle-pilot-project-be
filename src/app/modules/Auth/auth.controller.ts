@@ -4,11 +4,13 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { UserAuthServices } from './auth.service';
 import config from '../../config';
+import jwt from 'jsonwebtoken';
 
 
 const registerUser = catchAsync(async (req, res) => {
   const result = await UserAuthServices.registerUserIntoDB(req.body);
 
+  // The result from registerUserIntoDB already contains the token
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -111,7 +113,53 @@ const getSingleUser = catchAsync(async (req, res) => {
   });
 });
 
+const getPendingUsers = catchAsync(async (req, res) => {
+  const result = await UserAuthServices.getPendingUsersFromDB();
 
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Pending users retrieved successfully!',
+    data: result,
+  });
+});
+
+const approveUser = catchAsync(async (req, res) => {
+  const { userId } = req.params;
+  const result = await UserAuthServices.approveUserInDB(userId);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'User approved successfully!',
+    data: result,
+  });
+});
+
+const rejectUser = catchAsync(async (req, res) => {
+  const { userId } = req.params;
+  const result = await UserAuthServices.rejectUserInDB(userId);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'User rejected successfully!',
+    data: result,
+  });
+});
+
+const updateUserApprovalStatus = catchAsync(async (req, res) => {
+  const { userId } = req.params;
+  const { status } = req.body;
+  const result = await UserAuthServices.updateUserApprovalStatus(userId, status);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: `User approval status updated to ${status} successfully!`,
+    data: result,
+  });
+});
 
 export const userAuthController = {
   registerUser,
@@ -121,5 +169,9 @@ export const userAuthController = {
   sendForgotPasswordCode,
   verifyForgotPasswordUser,
   updateForgotPassword,
-  getSingleUser
+  getSingleUser,
+  getPendingUsers,
+  approveUser,
+  rejectUser,
+  updateUserApprovalStatus
 };

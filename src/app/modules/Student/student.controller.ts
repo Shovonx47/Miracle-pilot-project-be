@@ -5,13 +5,47 @@ import sendResponse from '../../utils/sendResponse';
 import { StudentServices } from './student.service';
 
 const createStudent = catchAsync(async (req, res) => {
-  const student = await StudentServices.createStudentIntoDB(req.body);
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: 'Student created successful!',
-    data: student,
-  });
+  console.log('Creating student with data:', JSON.stringify(req.body, null, 2));
+  
+  // Check for required fields and provide defaults if needed
+  const requiredFields = [
+    'userId', 'academicYear', 'admissionDate', 'status', 'category',
+    'firstName', 'lastName', 'class', 'section', 'gender',
+    'dateOfBirth', 'bloodGroup', 'religion', 'contactNumber',
+    'email', 'board', 'motherTongue', 'presentAddress', 
+    'permanentAddress', 'fatherName', 'fatherEmail',
+    'fatherContactNumber', 'fatherOccupation', 'fatherNidNumber',
+    'motherName', 'motherEmail', 'motherContactNumber',
+    'motherOccupation', 'motherNidNumber'
+  ];
+  
+  const missingFields = requiredFields.filter(field => !req.body[field]);
+  if (missingFields.length > 0) {
+    console.warn('Missing required fields:', missingFields);
+  }
+  
+  try {
+    // Convert null values to empty strings to pass validation
+    const fileFields = ['profileImage', 'birthCertificate', 'transferCertificate'];
+    fileFields.forEach(field => {
+      if (req.body[field] === null || req.body[field] === undefined) {
+        req.body[field] = ''; // Empty string instead of null
+      }
+    });
+    
+    console.log('Processed data ready for saving:', JSON.stringify(req.body, null, 2));
+    
+    const student = await StudentServices.createStudentIntoDB(req.body);
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Student created successful!',
+      data: student,
+    });
+  } catch (error) {
+    console.error('Error creating student:', error);
+    throw error; // This will be caught by the error handling middleware
+  }
 });
 
 const getAllStudents = catchAsync(async (req, res) => {

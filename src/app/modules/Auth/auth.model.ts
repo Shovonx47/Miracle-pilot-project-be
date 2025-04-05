@@ -49,6 +49,11 @@ const authSchema: Schema<TUserExtends> = new Schema<TUserExtends>(
       enum: ['active', 'block'],
       default: 'active',
     },
+    approvalStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending',
+    },
     otp: {
       type: String,
     },

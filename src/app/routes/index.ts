@@ -7,6 +7,7 @@ import { ClassRoutineRoutes } from '../modules/Create-class-routine/class-routin
 import { ExamSettingRoutes } from '../modules/Exam-setting/exam-setting.route';
 import { ExaminationScheduleRoutes } from '../modules/Examination-schedule/exam-schedule.route';
 import { OffDaySetupRoutes } from '../modules/Off-day-setup/off-day.route';
+import { PendingRequestRoutes } from '../modules/PendingRequest/pendingRequest.route';
 import { SalaryRoutes } from '../modules/Salary/salary.route';
 import { StaffRoutes } from '../modules/Staff/staff.route';
 import { StudentRoutes } from '../modules/Student/student.route';
@@ -76,6 +77,10 @@ const moduleRoutes = [
   {
     path: '/transaction-type',
     route: TransactionTypeRoutes,
+  },
+  {
+    path: '/pending-requests',
+    route: PendingRequestRoutes,
   },
 ];
 
