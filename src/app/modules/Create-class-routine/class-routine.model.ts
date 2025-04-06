@@ -9,10 +9,16 @@ const ClassRoutineSchema = new Schema<TClassRoutine>(
     teacherName: { type: String, required: [true, 'Teacher name is required'] },
     subjectCode: { type: String, required: [true, 'Subject code is required'] },
     subjectName: { type: String, required: [true, 'Subject name is required'] },
-    day: {
-      type: String,
+    days: {
+      type: [String],
       enum: Days,
-      required: [true, 'Day is required'],
+      required: [true, 'At least one day is required'],
+      validate: {
+        validator: function(v: string[]) {
+          return v.length > 0;
+        },
+        message: 'At least one day must be selected'
+      }
     },
     startTime: { type: String, required: [true, 'Start time is required'] },
     endTime: { type: String, required: [true, 'End time is required'] },

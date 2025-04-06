@@ -45,17 +45,6 @@ const attendanceSchema: Schema<TAttendance> = new Schema<TAttendance>(
       type: Boolean,
       default: false,
     },
-    office_time: {
-      type: String,
-       
-    },
-    in_time: {
-      type: String,
-    },
-    out_time: {
-      type: String,
-      
-    },
     late_status: {
       type: Boolean,
       default: false,
@@ -66,15 +55,6 @@ const attendanceSchema: Schema<TAttendance> = new Schema<TAttendance>(
   },
 );
 
-
-attendanceSchema.pre('save', function (next) {
-  if (this.in_time && this.out_time && this.in_time < this.out_time) {
-    const err = new Error('In time must not be earlier than Out time.');
-    next(err);
-  } else {
-    next();
-  }
-});
 // Create and export the Attendance model
 export const Attendance = mongoose.model<TAttendance>(
   'Attendance',

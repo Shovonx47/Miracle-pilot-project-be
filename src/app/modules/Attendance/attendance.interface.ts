@@ -13,8 +13,5 @@ export interface TAttendance {
 
   present: boolean;
   absent: boolean;
-  office_time: string;
-  in_time: string;
-  out_time: string;
   late_status: boolean;
 }

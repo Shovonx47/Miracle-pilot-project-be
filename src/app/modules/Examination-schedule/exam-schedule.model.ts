@@ -5,7 +5,29 @@ const ExaminationScheduleSchema = new Schema<TExaminationSchedule>(
   {
     class: {
       type: String,
-      required: [true, 'Class name is required'],
+      required: [true, 'Class is required'],
+      validate: {
+        validator: function(v: string) {
+          // Remove 'Class ' prefix if present and trim whitespace
+          const classValue = v.replace(/^Class\s+/i, '').trim();
+          
+          // Convert Roman numeral to number if it's a Roman numeral
+          const romanNumerals: { [key: string]: number } = {
+            'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5,
+            'VI': 6, 'VII': 7, 'VIII': 8, 'IX': 9, 'X': 10
+          };
+          
+          // Check if it's a Roman numeral
+          if (romanNumerals[classValue.toUpperCase()]) {
+            return true;
+          }
+          
+          // If not Roman numeral, try parsing as number
+          const classNumber = parseInt(classValue);
+          return classNumber >= 1 && classNumber <= 10;
+        },
+        message: 'Class must be between 1 and 10 (as number or Roman numeral)'
+      }
     },
     examName: {
       type: String,
@@ -15,13 +37,9 @@ const ExaminationScheduleSchema = new Schema<TExaminationSchedule>(
       type: String,
       required: [true, 'Exam year is required'],
     },
-    startDate: {
+    examDate: {
       type: String,
-      required: [false, 'Start date is optional'],
-    },
-    endDate: {
-      type: String,
-      required: [false, 'End date is optional'],
+      required: [true, 'Date is required'],
     },
     description: {
       type: String,
@@ -31,13 +49,12 @@ const ExaminationScheduleSchema = new Schema<TExaminationSchedule>(
       {
         courseName: {
           type: String,
-          required: [true, 'Course name is required'],
+          required: [true, 'Subject name is required'],
         },
         courseCode: {
           type: String,
-          required: [true, 'Course code is required'],
+          required: [true, 'Subject code is required'],
         },
-
         maxMark: {
           type: String,
           required: [true, 'Maximum mark is required'],
@@ -55,10 +72,6 @@ const ExaminationScheduleSchema = new Schema<TExaminationSchedule>(
         },
       },
     ],
-    createdBy: {
-      type: String,
-      required: [true, 'Created by is required'],
-    },
     isDeleted: {
       type: Boolean,
       default: false,

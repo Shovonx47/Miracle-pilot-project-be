@@ -3,9 +3,6 @@ import { TAttendance } from './attendance.interface';
 export const attendanceKeys: (keyof TAttendance)[] = [
   'present',
   'absent',
-  'office_time',
-  'in_time',
-  'out_time',
   'late_status',
 ];
 

@@ -13,7 +13,7 @@ export interface TClassRoutine {
   subjectCode: string;
   class: string;
   section: string;
-  day: TDays;
+  days: TDays[];
   startTime: string; // Format: "HH:mm" or "10:00 AM"
   endTime: string; // Format: "HH:mm" or "11:00 AM"
   roomNumber: string;

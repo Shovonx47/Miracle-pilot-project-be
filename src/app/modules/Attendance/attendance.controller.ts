@@ -36,7 +36,12 @@ const getTodayAttendance = catchAsync(async (req, res) => {
   });
 });
 const getAllAttendanceByCurrentMonth = catchAsync(async (req, res) => {
-  const role = req.query.role as string;
+  // Extract role from user object in the request
+  const role = (req as any).user?.role;
+  if (!role) {
+    throw new Error('User role not found in request');
+  }
+
   const page = parseInt(req.query.page as string);
   const limit = parseInt(req.query.limit as string);
   const searchTerm = req.query.searchTerm as string;

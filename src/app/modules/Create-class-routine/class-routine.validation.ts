@@ -21,10 +21,9 @@ const classRoutineValidationSchema = z.object({
       teacherName: z.string({ required_error: 'Teacher name is required' }),
       subjectCode: z.string({ required_error: 'Subject code is required' }),
       subjectName: z.string({ required_error: 'Subject name is required' }),
-      day: z.enum([...Days] as [string, ...string[]], {
-        required_error: 'Day is required',
+      days: z.array(z.enum([...Days] as [string, ...string[]], {
         invalid_type_error: 'Invalid day',
-      }),
+      })).min(1, 'At least one day must be selected'),
       startTime: timeStringSchema,
       endTime: timeStringSchema,
       roomNumber: z.string({ required_error: 'Room number is required' }),
@@ -64,11 +63,11 @@ const updateClassRoutineValidationSchema = z.object({
       subjectName: z
         .string({ required_error: 'Subject name is required' })
         .optional(),
-      day: z
-        .enum([...Days] as [string, ...string[]], {
-          required_error: 'Day is required',
+      days: z
+        .array(z.enum([...Days] as [string, ...string[]], {
           invalid_type_error: 'Invalid day',
-        })
+        }))
+        .min(1, 'At least one day must be selected')
         .optional(),
       startTime: timeStringSchema.optional(),
       endTime: timeStringSchema.optional(),

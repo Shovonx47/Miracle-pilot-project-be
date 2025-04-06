@@ -20,13 +20,20 @@ const authorization = (...requiredRoles: TUserRole[]) => {
 
     // checking if the token is missing
     if (!authHeader) {
-      throw new AppError(StatusCodes.UNAUTHORIZED, 'You are not authorized!');
+      throw new AppError(StatusCodes.UNAUTHORIZED, 'Authorization header is missing');
     }
     
     // Extract token from Bearer format if present
-    const token = authHeader.startsWith('Bearer ') 
-      ? authHeader.split(' ')[1] 
-      : authHeader;
+    let token = '';
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else {
+      throw new AppError(StatusCodes.UNAUTHORIZED, 'Invalid token format. Use Bearer token');
+    }
+
+    if (!token) {
+      throw new AppError(StatusCodes.UNAUTHORIZED, 'Token is missing');
+    }
       
     // checking if the given token is valid
     let decoded;
