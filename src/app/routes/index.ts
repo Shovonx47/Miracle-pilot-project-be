@@ -14,6 +14,7 @@ import { StudentRoutes } from '../modules/Student/student.route';
 import { TeacherRoutes } from '../modules/Teacher/teacher.route';
 import { TransactionRoutes } from '../modules/Transaction/transaction.route';
 import { TransactionTypeRoutes } from '../modules/TransactionType/transactionType.route';
+import { NoticeRoutes } from '../modules/Notice/notice.route';
 
 const router = Router();
 
@@ -81,6 +82,10 @@ const moduleRoutes = [
   {
     path: '/pending-requests',
     route: PendingRequestRoutes,
+  },
+  {
+    path: '/notice',
+    route: NoticeRoutes,
   },
 ];
 
